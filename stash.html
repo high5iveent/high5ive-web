@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Stash — High 5ive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --lime:   #C8F135;
+      --orange: #FF5C1A;
+      --cream:  #F5F0E8;
+      --dark:   #0C0C0B;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--dark);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      overflow: hidden;
+      cursor: none;
+    }
+
+    /* CURSOR */
+    #cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: var(--lime);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%,-50%);
+      mix-blend-mode: difference;
+      transition: width 0.18s ease, height 0.18s ease;
+    }
+    #cursor.big { width: 34px; height: 34px; }
+
+    /* CANVAS BACKGROUND */
+    #bg { position: fixed; inset: 0; z-index: 0; }
+
+    /* GRAIN OVERLAY */
+    #grain {
+      position: fixed; inset: 0; z-index: 1;
+      opacity: 0.045;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    /* MAIN LAYOUT */
+    #wrap {
+      position: relative;
+      z-index: 10;
+      width: 100%; height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    /* NAV */
+    #nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2.5rem;
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      color: var(--lime);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--orange); }
+    .nav-back {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.3;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .nav-back:hover { opacity: 0.8; }
+
+    /* EYEBROW */
+    #eyebrow {
+      font-size: 0.68rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--lime);
+      opacity: 0.6;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.8s ease 0.2s both;
+    }
+
+    /* COUNTDOWN */
+    #countdown-wrap {
+      display: flex;
+      gap: clamp(1rem, 4vw, 3rem);
+      align-items: flex-start;
+      animation: fadeUp 0.8s ease 0.4s both;
+    }
+
+    .time-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .time-digits {
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(3.5rem, 12vw, 8rem);
+      font-weight: 300;
+      line-height: 1;
+      color: var(--cream);
+      letter-spacing: -0.04em;
+      min-width: 2ch;
+      text-align: center;
+      transition: color 0.3s ease;
+    }
+
+    .time-digits.pulse {
+      color: var(--lime);
+    }
+
+    .time-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.25;
+    }
+
+    .time-sep {
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(3rem, 10vw, 7rem);
+      font-weight: 300;
+      color: var(--cream);
+      opacity: 0.12;
+      line-height: 1;
+      margin-top: 0;
+      user-select: none;
+    }
+
+    /* SUBTEXT */
+    #subtext {
+      margin-top: 3rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      color: var(--cream);
+      opacity: 0.2;
+      text-transform: uppercase;
+      animation: fadeUp 0.8s ease 0.6s both;
+    }
+
+    /* SOON STATE */
+    #soon-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+      animation: fadeUp 0.9s ease both;
+    }
+    #soon-heading {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.5rem, 7vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--cream);
+      text-align: center;
+    }
+    #soon-heading em { font-style: normal; color: var(--lime); }
+    #soon-sub {
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.3;
+    }
+
+    /* REVEAL STATE */
+    #reveal-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      max-width: min(90vw, 640px);
+      animation: revealIn 1.2s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes revealIn {
+      from { opacity: 0; transform: scale(0.94) translateY(20px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    #reveal-eyebrow {
+      font-size: 0.68rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--lime);
+      opacity: 0.8;
+    }
+
+    #reveal-image-wrap {
+      position: relative;
+      width: 100%;
+      border: 1px solid rgba(200,241,53,0.15);
+    }
+    #reveal-image-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border: 1px solid rgba(200,241,53,0.08);
+      transform: translate(6px, 6px);
+      z-index: -1;
+    }
+    #reveal-img {
+      width: 100%;
+      display: block;
+      filter: saturate(0.85);
+    }
+
+    #reveal-caption {
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.3;
+    }
+
+    /* SCANLINE on reveal */
+    #scanline {
+      position: fixed;
+      top: -100%;
+      left: 0; right: 0;
+      height: 100%;
+      background: linear-gradient(transparent 50%, rgba(200,241,53,0.015) 50%);
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+    }
+    #scanline.active { opacity: 1; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* OVERFLOW for reveal */
+    body.revealed { overflow-y: auto; }
+    body.revealed #wrap {
+      height: auto;
+      min-height: 100vh;
+      padding: 7rem 1.5rem 4rem;
+    }
+
+    @media (max-width: 600px) {
+      #nav { padding: 1.2rem 1.5rem; }
+      .time-sep { display: none; }
+      #countdown-wrap { gap: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<canvas id="bg"></canvas>
+<div id="grain"></div>
+<div id="scanline"></div>
+
+<div id="nav">
+  <a href="/" class="nav-logo">High <span>5ive</span></a>
+  <a href="/" class="nav-back">← Back</a>
+</div>
+
+<div id="wrap">
+
+  <!-- COUNTDOWN STATE -->
+  <div id="countdown-state">
+    <div id="eyebrow">The Stash — Drops In</div>
+    <div id="countdown-wrap">
+      <div class="time-block">
+        <div class="time-digits" id="days">00</div>
+        <div class="time-label">Days</div>
+      </div>
+      <div class="time-sep">:</div>
+      <div class="time-block">
+        <div class="time-digits" id="hours">00</div>
+        <div class="time-label">Hours</div>
+      </div>
+      <div class="time-sep">:</div>
+      <div class="time-block">
+        <div class="time-digits" id="minutes">00</div>
+        <div class="time-label">Minutes</div>
+      </div>
+      <div class="time-sep">:</div>
+      <div class="time-block">
+        <div class="time-digits" id="seconds">00</div>
+        <div class="time-label">Seconds</div>
+      </div>
+    </div>
+    <div id="subtext">Stay close — you'll want to be first</div>
+  </div>
+
+  <!-- SOON STATE (no active stash) -->
+  <div id="soon-state">
+    <div id="soon-heading">New Stash <em>Soon.</em></div>
+    <div id="soon-sub">Check back — something's coming</div>
+  </div>
+
+  <!-- REVEAL STATE -->
+  <div id="reveal-state">
+    <div id="reveal-eyebrow">The Stash is Live — Go Find It</div>
+    <div id="reveal-image-wrap">
+      <img id="reveal-img" src="assets/images/stash.jpg" alt="Stash location" />
+    </div>
+    <div id="reveal-caption">First come, first served &nbsp;✦&nbsp; High 5ive</div>
+  </div>
+
+</div>
+
+<script>
+  // ─────────────────────────────────────────────
+  // CONFIG — edit these two lines for each stash
+  // ─────────────────────────────────────────────
+
+  // Set to 'countdown', 'reveal', or 'soon'
+  const MODE = 'countdown';
+
+  // Target date/time in YOUR local timezone (EST example)
+  // Format: 'YYYY-MM-DDTHH:MM:SS' — Vercel serves in UTC so adjust accordingly
+  // For a quick TEST, set this to ~30 seconds from now
+  const TARGET = new Date('2025-04-14T20:00:00-05:00'); // ← change this
+
+  // ─────────────────────────────────────────────
+
+  // CURSOR
+  const cursor = document.getElementById('cursor');
+  let mx = -100, my = -100, cx = -100, cy = -100;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  document.querySelectorAll('a').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+  });
+  (function moveCursor() {
+    cx += (mx - cx) * 0.14;
+    cy += (my - cy) * 0.14;
+    cursor.style.left = cx + 'px';
+    cursor.style.top  = cy + 'px';
+    requestAnimationFrame(moveCursor);
+  })();
+
+  // ANIMATED BACKGROUND — drifting particle grid
+  const canvas = document.getElementById('bg');
+  const ctx    = canvas.getContext('2d');
+  let W, H, dots = [];
+
+  function initCanvas() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    dots = [];
+    const cols = Math.floor(W / 60);
+    const rows = Math.floor(H / 60);
+    for (let r = 0; r <= rows; r++) {
+      for (let c = 0; c <= cols; c++) {
+        dots.push({
+          bx: (c / cols) * W,
+          by: (r / rows) * H,
+          ox: Math.random() * Math.PI * 2,
+          oy: Math.random() * Math.PI * 2,
+          sp: 0.003 + Math.random() * 0.004,
+          amp: 6 + Math.random() * 10,
+        });
+      }
+    }
+  }
+
+  let frame = 0;
+  function drawBg() {
+    ctx.clearRect(0, 0, W, H);
+    frame += 1;
+
+    // Draw connecting lines
+    ctx.strokeStyle = 'rgba(200,241,53,0.04)';
+    ctx.lineWidth   = 0.5;
+
+    const cols = Math.floor(W / 60) + 1;
+    dots.forEach((d, i) => {
+      d.x = d.bx + Math.sin(frame * d.sp + d.ox) * d.amp;
+      d.y = d.by + Math.cos(frame * d.sp + d.oy) * d.amp;
+
+      const right = dots[i + 1];
+      const below = dots[i + cols];
+
+      if (right && Math.abs(right.bx - d.bx) < 90) {
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(right.x, right.y);
+        ctx.stroke();
+      }
+      if (below) {
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(below.x, below.y);
+        ctx.stroke();
+      }
+    });
+
+    // Draw dots
+    dots.forEach(d => {
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, 1, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200,241,53,0.18)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(drawBg);
+  }
+
+  initCanvas();
+  drawBg();
+  window.addEventListener('resize', initCanvas);
+
+  // STATE MACHINE
+  const countdownEl = document.getElementById('countdown-state');
+  const soonEl      = document.getElementById('soon-state');
+  const revealEl    = document.getElementById('reveal-state');
+  const scanline    = document.getElementById('scanline');
+
+  function showSoon() {
+    countdownEl.style.display = 'none';
+    soonEl.style.display      = 'flex';
+    revealEl.style.display    = 'none';
+  }
+
+  function showReveal() {
+    countdownEl.style.display = 'none';
+    soonEl.style.display      = 'none';
+    revealEl.style.display    = 'flex';
+    document.body.classList.add('revealed');
+    scanline.classList.add('active');
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function tick() {
+    const now  = new Date();
+    const diff = TARGET - now;
+
+    if (diff <= 0) {
+      showReveal();
+      return;
+    }
+
+    const totalSec = Math.floor(diff / 1000);
+    const d = Math.floor(totalSec / 86400);
+    const h = Math.floor((totalSec % 86400) / 3600);
+    const m = Math.floor((totalSec % 3600)  / 60);
+    const s = totalSec % 60;
+
+    const sEl = document.getElementById('seconds');
+    const prev = sEl.textContent;
+    const next = pad(s);
+
+    document.getElementById('days').textContent    = pad(d);
+    document.getElementById('hours').textContent   = pad(h);
+    document.getElementById('minutes').textContent = pad(m);
+    sEl.textContent = next;
+
+    // Pulse seconds on change
+    if (prev !== next) {
+      sEl.classList.add('pulse');
+      setTimeout(() => sEl.classList.remove('pulse'), 300);
+    }
+  }
+
+  // Init based on MODE
+  if (MODE === 'soon') {
+    showSoon();
+  } else if (MODE === 'reveal') {
+    showReveal();
+  } else {
+    // countdown — check if already past
+    if (new Date() >= TARGET) {
+      showReveal();
+    } else {
+      countdownEl.style.display = 'block';
+      tick();
+      setInterval(tick, 1000);
+    }
+  }
+</script>
+</body>
+</html>
