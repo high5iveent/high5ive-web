@@ -57,11 +57,13 @@
       position: absolute;
       inset: 0;
       width: 100%; height: 100%;
+      z-index: 2;
     }
     #intro-text-wrap {
       position: relative;
-      z-index: 2;
+      z-index: 1;
       text-align: center;
+      user-select: none;
     }
     #intro-logo {
       font-family: 'Syne', sans-serif;
@@ -73,7 +75,6 @@
       opacity: 0;
       transform: translateY(30px);
       animation: logoIn 0.9s cubic-bezier(0.22,1,0.36,1) 0.4s forwards;
-      filter: drop-shadow(0 0 40px rgba(200,241,53,0.18));
     }
     #intro-logo .five { color: var(--orange); }
     #intro-tagline {
@@ -104,9 +105,96 @@
       from { width: 0; }
       to   { width: 220px; }
     }
-    #intro.dissolve { animation: introFade 1s ease forwards; }
-    @keyframes introFade {
-      to { opacity: 0; }
+    #intro.dissolve { animation: introFade 0.6s ease forwards; }
+    @keyframes introFade { to { opacity: 0; } }
+
+    /* AGE GATE */
+    #age-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 600;
+      background: var(--dark);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+      pointer-events: none;
+    }
+    #age-gate.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+    #age-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      color: var(--lime);
+      letter-spacing: -0.02em;
+      margin-bottom: 3rem;
+      opacity: 0.5;
+    }
+    #age-logo span { color: var(--orange); }
+    #age-question {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--cream);
+      text-align: center;
+      margin-bottom: 0.8rem;
+    }
+    #age-sub {
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.25;
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+    #age-btns {
+      display: flex;
+      gap: 1rem;
+    }
+    .age-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.85rem 2.4rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+    }
+    #age-yes {
+      background: var(--lime);
+      color: var(--dark);
+    }
+    #age-yes:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 30px rgba(200,241,53,0.3);
+    }
+    #age-no {
+      background: transparent;
+      color: var(--cream);
+      border: 1px solid rgba(245,240,232,0.18);
+    }
+    #age-no:hover { border-color: rgba(245,240,232,0.4); }
+    #age-notice {
+      margin-top: 2.5rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.15;
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.8;
     }
 
     /* MAIN */
@@ -421,6 +509,18 @@
   </div>
 </div>
 
+<!-- AGE GATE -->
+<div id="age-gate">
+  <div id="age-logo">High <span>5ive</span></div>
+  <div id="age-question">Are you 21 or older?</div>
+  <div id="age-sub">You must be of legal age to enter</div>
+  <div id="age-btns">
+    <button class="age-btn" id="age-yes">Yes, I am</button>
+    <button class="age-btn" id="age-no">No, take me back</button>
+  </div>
+  <div id="age-notice">By entering you confirm you are of legal cannabis consumption age in your region.</div>
+</div>
+
 <!-- MAIN -->
 <div id="main">
   <nav>
@@ -522,11 +622,11 @@
 </div>
 
 <script>
-  // CURSOR
+  // ── CURSOR ──
   const cursor = document.getElementById('cursor');
   let mx = -100, my = -100, cx = -100, cy = -100;
   document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-  document.querySelectorAll('a, .card').forEach(el => {
+  document.querySelectorAll('a, .card, .age-btn').forEach(el => {
     el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
     el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
   });
@@ -538,41 +638,41 @@
     requestAnimationFrame(animCursor);
   })();
 
-  // SMOKE INTRO
-  const canvas = document.getElementById('intro-canvas');
-  const ctx    = canvas.getContext('2d');
-  const intro  = document.getElementById('intro');
-  const main   = document.getElementById('main');
+  // ── CIGARETTE BURN INTRO ──
+  const canvas  = document.getElementById('intro-canvas');
+  const ctx     = canvas.getContext('2d');
+  const intro   = document.getElementById('intro');
+  const main    = document.getElementById('main');
+  const ageGate = document.getElementById('age-gate');
 
   function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
   resize();
   window.addEventListener('resize', resize);
 
-  class Particle {
+  // Smoke particles — only rise from the burn point
+  class SmokeParticle {
     constructor(x, y) {
-      this.x     = x + (Math.random() - 0.5) * 260;
+      this.x     = x + (Math.random() - 0.5) * 6;
       this.y     = y;
-      this.vx    = (Math.random() - 0.5) * 0.7;
-      this.vy    = -(Math.random() * 1.6 + 0.5);
+      this.vx    = (Math.random() - 0.5) * 0.5;
+      this.vy    = -(Math.random() * 1.2 + 0.6);
       this.life  = 1;
-      this.decay = Math.random() * 0.007 + 0.005;
-      this.r     = Math.random() * 30 + 14;
-      this.warm  = Math.random() > 0.55;
+      this.decay = Math.random() * 0.012 + 0.008;
+      this.r     = Math.random() * 10 + 6;
     }
     update() {
-      this.x    += this.vx;
-      this.y    += this.vy;
-      this.vy   *= 0.997;
-      this.vx   += (Math.random() - 0.5) * 0.05;
-      this.life  -= this.decay;
-      this.r     += 0.3;
+      this.x   += this.vx;
+      this.y   += this.vy;
+      this.vx  += (Math.random() - 0.5) * 0.08;
+      this.vy  *= 0.994;
+      this.life -= this.decay;
+      this.r   += 0.4;
     }
     draw() {
-      const hue = this.warm ? '255,92,26' : '200,241,53';
-      const g   = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
-      g.addColorStop(0,   `rgba(${hue},${(this.life * 0.22).toFixed(3)})`);
-      g.addColorStop(0.5, `rgba(${hue},${(this.life * 0.08).toFixed(3)})`);
-      g.addColorStop(1,   `rgba(${hue},0)`);
+      const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
+      g.addColorStop(0,   `rgba(160,155,145,${(this.life * 0.32).toFixed(3)})`);
+      g.addColorStop(0.5, `rgba(120,115,108,${(this.life * 0.12).toFixed(3)})`);
+      g.addColorStop(1,   'rgba(80,78,72,0)');
       ctx.beginPath();
       ctx.fillStyle = g;
       ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
@@ -580,13 +680,18 @@
     }
   }
 
-  let particles = [];
+  let smoke     = [];
   let startTime = null;
   let finished  = false;
 
+  // Burn timing
+  const BURN_START  = 1800;  // ms — when burn begins
+  const BURN_DUR    = 2000;  // ms — how long the burn takes left to right... er right to left
+  const BURN_END    = BURN_START + BURN_DUR;
+
   function getLogoRect() {
     const el = document.getElementById('intro-logo');
-    return el ? el.getBoundingClientRect() : { left: canvas.width/2, top: canvas.height/2, width: 0, height: 0 };
+    return el ? el.getBoundingClientRect() : null;
   }
 
   function loop(ts) {
@@ -596,45 +701,95 @@
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Emit smoke starting at 1.8s, ramping up, trailing off at 3.2s
-    if (t > 1800 && t < 3300) {
-      const rect  = getLogoRect();
-      const cx_   = rect.left + rect.width / 2;
-      const cy_   = rect.top  + rect.height * 0.6;
-      const burst = t < 2200 ? 2 : t < 2700 ? 5 : 3;
-      for (let i = 0; i < burst; i++) particles.push(new Particle(cx_, cy_));
+    if (t >= BURN_START && t <= BURN_END + 600) {
+      const rect = getLogoRect();
+      if (rect) {
+        // How far the burn has traveled (0 = right edge, 1 = left edge)
+        const prog     = Math.min((t - BURN_START) / BURN_DUR, 1);
+        const burnX    = rect.right - prog * rect.width;
+        const burnY    = rect.top + rect.height * 0.5;
+
+        // Mask: cover everything to the RIGHT of the burn point with dark bg
+        // This erases the text as the burn moves left
+        ctx.fillStyle = '#0C0C0B';
+        ctx.fillRect(burnX, rect.top - 10, canvas.width - burnX + 20, rect.height + 20);
+
+        // Also fade out tagline and line as burn progresses past 60%
+        if (prog > 0.5) {
+          const subProg = Math.min((prog - 0.5) / 0.5, 1);
+          const tag  = document.getElementById('intro-tagline');
+          const line = document.getElementById('intro-line');
+          if (tag)  tag.style.opacity  = (0.45 * (1 - subProg)).toFixed(3);
+          if (line) line.style.opacity = (1 - subProg).toFixed(3);
+        }
+
+        // Ember glow at burn point
+        if (prog < 1) {
+          const glow = ctx.createRadialGradient(burnX, burnY, 0, burnX, burnY, 18);
+          glow.addColorStop(0,   'rgba(255,140,30,0.9)');
+          glow.addColorStop(0.3, 'rgba(255,80,10,0.4)');
+          glow.addColorStop(0.7, 'rgba(180,40,0,0.1)');
+          glow.addColorStop(1,   'rgba(0,0,0,0)');
+          ctx.beginPath();
+          ctx.fillStyle = glow;
+          ctx.arc(burnX, burnY, 18, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Char edge — dark crinkled line just behind the burn
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(40,30,20,0.9)';
+          ctx.lineWidth   = 2.5;
+          ctx.moveTo(burnX + 2, rect.top - 4);
+          ctx.lineTo(burnX + 2, rect.bottom + 4);
+          ctx.stroke();
+
+          // Emit smoke upward from burn point
+          for (let i = 0; i < 3; i++) smoke.push(new SmokeParticle(burnX, burnY - 10));
+        }
+      }
     }
 
-    particles.forEach(p => p.update());
-    particles = particles.filter(p => p.life > 0);
-    particles.forEach(p => p.draw());
+    // Update + draw smoke
+    smoke.forEach(p => p.update());
+    smoke = smoke.filter(p => p.life > 0);
+    smoke.forEach(p => p.draw());
 
-    // Fade text out from 2.5s
-    if (t > 2500) {
-      const prog  = Math.min((t - 2500) / 700, 1);
-      const logo  = document.getElementById('intro-logo');
-      const tag   = document.getElementById('intro-tagline');
-      const line  = document.getElementById('intro-line');
-      const ease  = prog < 0.5 ? 2*prog*prog : -1+(4-2*prog)*prog;
-      if (logo) logo.style.opacity  = (1 - ease).toFixed(3);
-      if (tag)  tag.style.opacity   = (0.45 * (1 - ease)).toFixed(3);
-      if (line) line.style.opacity  = (1 - ease).toFixed(3);
-    }
-
-    // Dismiss at 3.5s
-    if (t > 3500 && !finished) {
+    // Once burn is done, wait a beat then show age gate
+    if (t > BURN_END + 500 && !finished) {
       finished = true;
+      // Fade intro out
       intro.classList.add('dissolve');
-      main.classList.add('visible');
-      setTimeout(() => { if (intro.parentNode) intro.parentNode.removeChild(intro); }, 1100);
+      // Show age gate
+      setTimeout(() => {
+        ageGate.style.display = 'flex';
+        requestAnimationFrame(() => ageGate.classList.add('visible'));
+        if (intro.parentNode) intro.parentNode.removeChild(intro);
+      }, 650);
     }
 
     requestAnimationFrame(loop);
   }
 
-  requestAnimationFrame(loop); 
+  requestAnimationFrame(loop);
 
-  // SCROLL REVEAL
+  // ── AGE GATE ──
+  document.getElementById('age-yes').addEventListener('click', () => {
+    ageGate.style.opacity = '0';
+    ageGate.style.pointerEvents = 'none';
+    main.classList.add('visible');
+    setTimeout(() => ageGate.remove(), 700);
+  });
+
+  document.getElementById('age-no').addEventListener('click', () => {
+    // Go back if there's history, otherwise redirect to a safe page
+    if (document.referrer && document.referrer !== window.location.href) {
+      history.back();
+    } else {
+      window.location.href = 'https://www.google.com';
+    }
+  });
+
+  // ── SCROLL REVEAL ──
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.12 });
