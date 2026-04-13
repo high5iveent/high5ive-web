@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>High 5ive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --lime:   #C8F135;
+      --orange: #FF5C1A;
+      --cream:  #F5F0E8;
+      --dark:   #0C0C0B;
+      --muted:  #1E1E1C;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--dark);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* CURSOR */
+    #cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: var(--lime);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.18s ease, height 0.18s ease;
+      mix-blend-mode: difference;
+    }
+    #cursor.hovered { width: 36px; height: 36px; }
+
+    /* INTRO */
+    #intro {
+      position: fixed;
+      inset: 0;
+      background: var(--dark);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    #intro-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+    }
+    #intro-text-wrap {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+    #intro-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(4.5rem, 13vw, 9rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--lime);
+      line-height: 1;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: logoIn 0.9s cubic-bezier(0.22,1,0.36,1) 0.4s forwards;
+      filter: drop-shadow(0 0 40px rgba(200,241,53,0.18));
+    }
+    #intro-logo .five { color: var(--orange); }
+    #intro-tagline {
+      font-size: 0.75rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0;
+      margin-top: 1.2rem;
+      animation: tagIn 0.6s ease 1.3s forwards;
+    }
+    #intro-line {
+      width: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--lime), transparent);
+      margin: 1.2rem auto 0;
+      animation: lineExpand 1s ease 1s forwards;
+    }
+    @keyframes logoIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes tagIn {
+      from { opacity: 0; }
+      to   { opacity: 0.45; }
+    }
+    @keyframes lineExpand {
+      from { width: 0; }
+      to   { width: 220px; }
+    }
+    #intro.dissolve { animation: introFade 1s ease forwards; }
+    @keyframes introFade {
+      to { opacity: 0; }
+    }
+
+    /* MAIN */
+    #main { opacity: 0; transition: opacity 0.9s ease; }
+    #main.visible { opacity: 1; }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: var(--lime);
+    }
+    .nav-logo span { color: var(--orange); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    /* HERO */
+    #hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 3rem 6rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg-text {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(8rem, 28vw, 22rem);
+      font-weight: 800;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(200,241,53,0.05);
+      white-space: nowrap;
+      user-select: none;
+      pointer-events: none;
+      letter-spacing: -0.05em;
+    }
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--lime);
+      margin-bottom: 1.5rem;
+      opacity: 0.8;
+    }
+    .hero-heading {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      max-width: 820px;
+    }
+    .hero-heading em { font-style: normal; color: var(--lime); }
+    .hero-heading .alt { color: var(--orange); }
+    .hero-sub {
+      margin-top: 2rem;
+      max-width: 420px;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--cream);
+      opacity: 0.5;
+      font-weight: 300;
+    }
+    .hero-cta {
+      margin-top: 2.5rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--lime);
+      color: var(--dark);
+      border: none;
+      padding: 0.9rem 2.2rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      cursor: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 40px rgba(200,241,53,0.28);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--cream);
+      border: 1px solid rgba(245,240,232,0.2);
+      padding: 0.9rem 2.2rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      cursor: none;
+      transition: border-color 0.2s, color 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-ghost:hover { border-color: var(--lime); color: var(--lime); }
+
+    /* TICKER */
+    .ticker-wrap {
+      background: var(--lime);
+      overflow: hidden;
+      padding: 0.9rem 0;
+      white-space: nowrap;
+    }
+    .ticker-track {
+      display: inline-flex;
+      animation: ticker 22s linear infinite;
+    }
+    .ticker-item {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--dark);
+      padding: 0 2.5rem;
+    }
+    .ticker-dot { color: var(--orange); }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* PRODUCTS */
+    #products { padding: 7rem 3rem; }
+    .section-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--lime);
+      opacity: 0.7;
+      margin-bottom: 3.5rem;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5px;
+    }
+    .card {
+      background: var(--muted);
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+      cursor: none;
+    }
+    .card:hover { background: #252522; }
+    .card-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 4rem;
+      font-weight: 800;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(200,241,53,0.18);
+      line-height: 1;
+      margin-bottom: 2rem;
+      transition: -webkit-text-stroke-color 0.3s;
+    }
+    .card:hover .card-num { -webkit-text-stroke-color: rgba(200,241,53,0.5); }
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+    }
+    .card-desc {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: var(--cream);
+      opacity: 0.45;
+      font-weight: 300;
+    }
+    .card-tag {
+      display: inline-block;
+      margin-top: 1.8rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--orange);
+      border: 1px solid rgba(255,92,26,0.35);
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+    }
+
+    /* STATEMENT */
+    #statement {
+      padding: 8rem 3rem;
+      border-top: 1px solid rgba(245,240,232,0.06);
+    }
+    .statement-text {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 5.5vw, 4.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      max-width: 900px;
+    }
+    .statement-text em { font-style: normal; color: var(--lime); }
+    .statement-aside {
+      margin-top: 3rem;
+      display: flex;
+      gap: 4rem;
+      flex-wrap: wrap;
+    }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--lime);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.4;
+      margin-top: 0.4rem;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid rgba(245,240,232,0.06);
+      padding: 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--lime);
+      letter-spacing: -0.02em;
+    }
+    .footer-logo span { color: var(--orange); }
+    .footer-copy { font-size: 0.75rem; color: var(--cream); opacity: 0.25; letter-spacing: 0.08em; }
+    .footer-age {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--orange);
+      opacity: 0.7;
+      border: 1px solid rgba(255,92,26,0.25);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+    }
+
+    /* SCROLL REVEAL */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 640px) {
+      nav { padding: 1.2rem 1.5rem; }
+      .nav-links { display: none; }
+      #hero { padding: 0 1.5rem 4rem; }
+      #products, #statement { padding: 5rem 1.5rem; }
+      footer { padding: 2rem 1.5rem; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<!-- INTRO -->
+<div id="intro">
+  <canvas id="intro-canvas"></canvas>
+  <div id="intro-text-wrap">
+    <div id="intro-logo">High <span class="five">5ive</span></div>
+    <div id="intro-line"></div>
+    <div id="intro-tagline">Elevated by nature</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <nav>
+    <div class="nav-logo">High <span>5ive</span></div>
+    <ul class="nav-links">
+      <li><a href="#products">Products</a></li>
+      <li><a href="#statement">About</a></li>
+      <li><a href="#">Shop</a></li>
+    </ul>
+  </nav>
+
+  <section id="hero">
+    <div class="hero-bg-text" aria-hidden="true">H5</div>
+    <p class="hero-eyebrow">Premium Cannabis — Est. 2024</p>
+    <h1 class="hero-heading">
+      Feel <em>every</em><br />
+      <span class="alt">five</span> senses.
+    </h1>
+    <p class="hero-sub">Crafted for those who move intentionally. High 5ive is where quality cultivation meets a refined experience.</p>
+    <div class="hero-cta">
+      <a href="#products" class="btn-primary">Explore Products</a>
+      <a href="#statement" class="btn-ghost">Our Story</a>
+    </div>
+  </section>
+
+  <div class="ticker-wrap" aria-hidden="true">
+    <div class="ticker-track">
+      <span class="ticker-item">Small Batch <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">Lab Tested <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">High 5ive <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">Premium Flower <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">Elevated Living <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">Curated Strains <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">Small Batch <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">Lab Tested <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">High 5ive <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">Premium Flower <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">Elevated Living <span class="ticker-dot">✦</span></span>
+      <span class="ticker-item">Curated Strains <span class="ticker-dot">✦</span></span>
+    </div>
+  </div>
+
+  <section id="products">
+    <p class="section-label reveal">What we carry</p>
+    <div class="cards-grid">
+      <div class="card reveal">
+        <div class="card-num">01</div>
+        <div class="card-title">Flower</div>
+        <p class="card-desc">Hand-selected, slow-cured small batch flower. Every gram traceable from seed to shelf.</p>
+        <span class="card-tag">Signature Line</span>
+      </div>
+      <div class="card reveal" style="transition-delay:0.1s">
+        <div class="card-num">02</div>
+        <div class="card-title">Concentrates</div>
+        <p class="card-desc">Solventless and hydrocarbon extracts. Clean, potent, and expressive of the plant's true profile.</p>
+        <span class="card-tag">Live Resin · Rosin</span>
+      </div>
+      <div class="card reveal" style="transition-delay:0.2s">
+        <div class="card-num">03</div>
+        <div class="card-title">Edibles</div>
+        <p class="card-desc">Precision-dosed, chef-formulated. For the ones who know exactly what they want.</p>
+        <span class="card-tag">Micro · Standard · High</span>
+      </div>
+      <div class="card reveal" style="transition-delay:0.3s">
+        <div class="card-num">04</div>
+        <div class="card-title">Accessories</div>
+        <p class="card-desc">Curated tools for the ritual. Because how you consume is part of the experience.</p>
+        <span class="card-tag">Coming Soon</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="statement">
+    <p class="section-label reveal">Our philosophy</p>
+    <p class="statement-text reveal">
+      Cannabis deserves the same <em>craft</em> and <em>intentionality</em> as anything else you put in your body. We're not here to sell you hype — we're here to raise the bar.
+    </p>
+    <div class="statement-aside">
+      <div class="stat-item reveal">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Lab Tested</div>
+      </div>
+      <div class="stat-item reveal" style="transition-delay:0.1s">
+        <div class="stat-num">5</div>
+        <div class="stat-label">Core Product Lines</div>
+      </div>
+      <div class="stat-item reveal" style="transition-delay:0.2s">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Compromise</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-logo">High <span>5ive</span></div>
+    <span class="footer-age">21+ Only</span>
+    <p class="footer-copy">© 2024 High 5ive. All rights reserved.</p>
+  </footer>
+</div>
+
+<script>
+  // CURSOR
+  const cursor = document.getElementById('cursor');
+  let mx = -100, my = -100, cx = -100, cy = -100;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  document.querySelectorAll('a, .card').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+  });
+  (function animCursor() {
+    cx += (mx - cx) * 0.14;
+    cy += (my - cy) * 0.14;
+    cursor.style.left = cx + 'px';
+    cursor.style.top  = cy + 'px';
+    requestAnimationFrame(animCursor);
+  })();
+
+  // SMOKE INTRO
+  const canvas = document.getElementById('intro-canvas');
+  const ctx    = canvas.getContext('2d');
+  const intro  = document.getElementById('intro');
+  const main   = document.getElementById('main');
+
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  class Particle {
+    constructor(x, y) {
+      this.x     = x + (Math.random() - 0.5) * 260;
+      this.y     = y;
+      this.vx    = (Math.random() - 0.5) * 0.7;
+      this.vy    = -(Math.random() * 1.6 + 0.5);
+      this.life  = 1;
+      this.decay = Math.random() * 0.007 + 0.005;
+      this.r     = Math.random() * 30 + 14;
+      this.warm  = Math.random() > 0.55;
+    }
+    update() {
+      this.x    += this.vx;
+      this.y    += this.vy;
+      this.vy   *= 0.997;
+      this.vx   += (Math.random() - 0.5) * 0.05;
+      this.life  -= this.decay;
+      this.r     += 0.3;
+    }
+    draw() {
+      const hue = this.warm ? '255,92,26' : '200,241,53';
+      const g   = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
+      g.addColorStop(0,   `rgba(${hue},${(this.life * 0.22).toFixed(3)})`);
+      g.addColorStop(0.5, `rgba(${hue},${(this.life * 0.08).toFixed(3)})`);
+      g.addColorStop(1,   `rgba(${hue},0)`);
+      ctx.beginPath();
+      ctx.fillStyle = g;
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  let particles = [];
+  let startTime = null;
+  let finished  = false;
+
+  function getLogoRect() {
+    const el = document.getElementById('intro-logo');
+    return el ? el.getBoundingClientRect() : { left: canvas.width/2, top: canvas.height/2, width: 0, height: 0 };
+  }
+
+  function loop(ts) {
+    if (finished) return;
+    if (!startTime) startTime = ts;
+    const t = ts - startTime;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Emit smoke starting at 1.8s, ramping up, trailing off at 3.2s
+    if (t > 1800 && t < 3300) {
+      const rect  = getLogoRect();
+      const cx_   = rect.left + rect.width / 2;
+      const cy_   = rect.top  + rect.height * 0.6;
+      const burst = t < 2200 ? 2 : t < 2700 ? 5 : 3;
+      for (let i = 0; i < burst; i++) particles.push(new Particle(cx_, cy_));
+    }
+
+    particles.forEach(p => p.update());
+    particles = particles.filter(p => p.life > 0);
+    particles.forEach(p => p.draw());
+
+    // Fade text out from 2.5s
+    if (t > 2500) {
+      const prog  = Math.min((t - 2500) / 700, 1);
+      const logo  = document.getElementById('intro-logo');
+      const tag   = document.getElementById('intro-tagline');
+      const line  = document.getElementById('intro-line');
+      const ease  = prog < 0.5 ? 2*prog*prog : -1+(4-2*prog)*prog;
+      if (logo) logo.style.opacity  = (1 - ease).toFixed(3);
+      if (tag)  tag.style.opacity   = (0.45 * (1 - ease)).toFixed(3);
+      if (line) line.style.opacity  = (1 - ease).toFixed(3);
+    }
+
+    // Dismiss at 3.5s
+    if (t > 3500 && !finished) {
+      finished = true;
+      intro.classList.add('dissolve');
+      main.classList.add('visible');
+      setTimeout(() => { if (intro.parentNode) intro.parentNode.removeChild(intro); }, 1100);
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+
+  // SCROLL REVEAL
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
