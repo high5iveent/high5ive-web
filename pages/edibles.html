@@ -344,7 +344,7 @@
     return                                 { cls: 'in',  text: 'In Stock' };
   }
 
-  fetch('../products.json')
+  fetch('https://www.high5ive.org/products.json')
     .then(r => r.json())
     .then(data => {
       const products = data[CATEGORY] || [];
