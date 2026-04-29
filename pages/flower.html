@@ -32,7 +32,8 @@
       z-index: 9999;
       transform: translate(-50%, -50%);
       transition: width 0.18s ease, height 0.18s ease;
-      mix-blend-mode: difference;
+      box-shadow: 0 0 0 1px rgba(200,241,53,0.3);
+      
     }
     #cursor.hovered { width: 36px; height: 36px; }
 
@@ -343,7 +344,7 @@
     return                                 { cls: 'in',  text: 'In Stock' };
   }
 
-  fetch(window.location.origin + '/products.json')
+  fetch('../products.json')
     .then(r => r.json())
     .then(data => {
       const products = data[CATEGORY] || [];
