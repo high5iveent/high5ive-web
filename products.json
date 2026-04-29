@@ -1,0 +1,58 @@
+{
+  "flower": [
+    {
+      "id": "fl-001",
+      "name": "Test Flower Strain",
+      "description": "A smooth, balanced hybrid with notes of citrus and earth. Perfect for any time of day.",
+      "price": 50,
+      "unit": "3.5g",
+      "thc": "24%",
+      "cbd": "0.1%",
+      "stock": 10,
+      "available": true,
+      "image": "https://placehold.co/600x400/1E1E1C/C8F135?text=Flower"
+    }
+  ],
+  "concentrates": [
+    {
+      "id": "co-001",
+      "name": "Test Concentrate",
+      "description": "Solventless live rosin. Clean, full-spectrum flavor that stays true to the plant.",
+      "price": 60,
+      "unit": "1g",
+      "thc": "78%",
+      "cbd": "0.2%",
+      "stock": 5,
+      "available": true,
+      "image": "https://placehold.co/600x400/1E1E1C/C8F135?text=Concentrate"
+    }
+  ],
+  "edibles": [
+    {
+      "id": "ed-001",
+      "name": "Test Edible",
+      "description": "Precision-dosed gummies. Clean ingredients, consistent experience every time.",
+      "price": 25,
+      "unit": "10pk · 10mg each",
+      "thc": "10mg/pc",
+      "cbd": "0mg",
+      "stock": 20,
+      "available": true,
+      "image": "https://placehold.co/600x400/1E1E1C/C8F135?text=Edible"
+    }
+  ],
+  "accessories": [
+    {
+      "id": "ac-001",
+      "name": "Test Accessory",
+      "description": "A curated piece for the ritual. Built to last, designed to impress.",
+      "price": 35,
+      "unit": "1 piece",
+      "thc": "—",
+      "cbd": "—",
+      "stock": 8,
+      "available": true,
+      "image": "https://placehold.co/600x400/1E1E1C/C8F135?text=Accessory"
+    }
+  ]
+}
