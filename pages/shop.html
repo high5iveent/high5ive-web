@@ -249,7 +249,7 @@
 <script>
   // CURSOR
   const cursor = document.getElementById('cursor');
-  let mx = -100, my = -100, cx = -100, cy = -100;
+  let mx = window.innerWidth/2, my = window.innerHeight/2, cx = window.innerWidth/2, cy = window.innerHeight/2;
   document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
   document.querySelectorAll('a').forEach(el => {
     el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
@@ -296,7 +296,7 @@
   ];
 
   // Load products.json and render category cards with live counts
-  fetch('/products.json')
+  fetch(window.location.origin + '/products.json')
     .then(r => r.json())
     .then(data => {
       const grid = document.getElementById('categories');
