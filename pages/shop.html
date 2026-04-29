@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop — High 5ive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --lime:   #C8F135;
+      --orange: #FF5C1A;
+      --cream:  #F5F0E8;
+      --dark:   #0C0C0B;
+      --muted:  #1E1E1C;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--dark);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    #cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: var(--lime);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.18s ease, height 0.18s ease;
+      mix-blend-mode: difference;
+    }
+    #cursor.hovered { width: 36px; height: 36px; }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+      background: linear-gradient(to bottom, rgba(12,12,11,0.95), transparent);
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: var(--lime);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--orange); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { opacity: 1; }
+
+    /* PAGE HEADER */
+    .page-header {
+      padding: 10rem 3rem 4rem;
+      border-bottom: 1px solid rgba(245,240,232,0.06);
+    }
+    .page-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--lime);
+      opacity: 0.7;
+      margin-bottom: 1rem;
+    }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .page-title span { color: var(--lime); }
+    .page-sub {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--cream);
+      opacity: 0.4;
+      font-weight: 300;
+      max-width: 400px;
+      line-height: 1.6;
+    }
+
+    /* CATEGORY GRID */
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5px;
+      margin-top: 1.5px;
+    }
+
+    .cat-card {
+      background: var(--muted);
+      padding: 3rem;
+      text-decoration: none;
+      color: var(--cream);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+      cursor: none;
+      min-height: 280px;
+    }
+    .cat-card:hover { background: #252522; }
+    .cat-card:hover .cat-arrow { transform: translate(4px, -4px); }
+
+    .cat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(200,241,53,0.15);
+      line-height: 1;
+      transition: -webkit-text-stroke-color 0.3s;
+    }
+    .cat-card:hover .cat-num { -webkit-text-stroke-color: rgba(200,241,53,0.4); }
+
+    .cat-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-top: auto;
+    }
+
+    .cat-desc {
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: var(--cream);
+      opacity: 0.4;
+      font-weight: 300;
+    }
+
+    .cat-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .cat-count {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--lime);
+      opacity: 0.6;
+    }
+
+    .cat-arrow {
+      font-size: 1.2rem;
+      color: var(--lime);
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid rgba(245,240,232,0.06);
+      padding: 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 1.5px;
+    }
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--lime);
+      letter-spacing: -0.02em;
+    }
+    .footer-logo span { color: var(--orange); }
+    .footer-copy { font-size: 0.75rem; color: var(--cream); opacity: 0.25; }
+    .footer-age {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--orange);
+      opacity: 0.7;
+      border: 1px solid rgba(255,92,26,0.25);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 1.2rem 1.5rem; }
+      .nav-links { display: none; }
+      .page-header { padding: 8rem 1.5rem 3rem; }
+      .categories { grid-template-columns: 1fr; }
+      footer { padding: 2rem 1.5rem; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<nav>
+  <a href="/" class="nav-logo">High <span>5ive</span></a>
+  <ul class="nav-links">
+    <li><a href="/pages/shop.html" class="active">Shop</a></li>
+    <li><a href="/#statement">About</a></li>
+    <li><a href="/stash">Stash</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <p class="page-eyebrow">High 5ive — The Menu</p>
+  <h1 class="page-title">What we <span>carry.</span></h1>
+  <p class="page-sub">Small batch, lab tested, delivered to you. Browse by category below.</p>
+</div>
+
+<div class="categories" id="categories">
+  <!-- Injected by JS -->
+</div>
+
+<footer>
+  <div class="footer-logo">High <span>5ive</span></div>
+  <span class="footer-age">21+ Only</span>
+  <p class="footer-copy">© 2026 High 5ive. All rights reserved.</p>
+</footer>
+
+<script>
+  // CURSOR
+  const cursor = document.getElementById('cursor');
+  let mx = -100, my = -100, cx = -100, cy = -100;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  document.querySelectorAll('a').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+  });
+  (function moveCursor() {
+    cx += (mx - cx) * 0.14;
+    cy += (my - cy) * 0.14;
+    cursor.style.left = cx + 'px';
+    cursor.style.top  = cy + 'px';
+    requestAnimationFrame(moveCursor);
+  })();
+
+  // CATEGORY CONFIG
+  const categories = [
+    {
+      key:   'flower',
+      num:   '01',
+      name:  'Flower',
+      desc:  'Hand-selected, slow-cured small batch flower.',
+      page:  '/pages/flower.html'
+    },
+    {
+      key:   'concentrates',
+      num:   '02',
+      name:  'Concentrates',
+      desc:  'Solventless and hydrocarbon extracts.',
+      page:  '/pages/concentrates.html'
+    },
+    {
+      key:   'edibles',
+      num:   '03',
+      name:  'Edibles',
+      desc:  'Precision-dosed, chef-formulated.',
+      page:  '/pages/edibles.html'
+    },
+    {
+      key:   'accessories',
+      num:   '04',
+      name:  'Accessories',
+      desc:  'Curated tools for the ritual.',
+      page:  '/pages/accessories.html'
+    }
+  ];
+
+  // Load products.json and render category cards with live counts
+  fetch('/products.json')
+    .then(r => r.json())
+    .then(data => {
+      const grid = document.getElementById('categories');
+      categories.forEach(cat => {
+        const items     = data[cat.key] || [];
+        const available = items.filter(p => p.available && p.stock > 0).length;
+        const card      = document.createElement('a');
+        card.href       = cat.page;
+        card.className  = 'cat-card';
+        card.innerHTML  = `
+          <div class="cat-num">${cat.num}</div>
+          <div class="cat-name">${cat.name}</div>
+          <div class="cat-desc">${cat.desc}</div>
+          <div class="cat-footer">
+            <span class="cat-count">${available} item${available !== 1 ? 's' : ''} available</span>
+            <span class="cat-arrow">↗</span>
+          </div>
+        `;
+        // Add cursor hover
+        card.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+        card.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+        grid.appendChild(card);
+      });
+    })
+    .catch(() => {
+      // Fallback if JSON fails to load
+      const grid = document.getElementById('categories');
+      categories.forEach((cat, i) => {
+        const card     = document.createElement('a');
+        card.href      = cat.page;
+        card.className = 'cat-card';
+        card.innerHTML = `
+          <div class="cat-num">${cat.num}</div>
+          <div class="cat-name">${cat.name}</div>
+          <div class="cat-desc">${cat.desc}</div>
+          <div class="cat-footer">
+            <span class="cat-count">View products</span>
+            <span class="cat-arrow">↗</span>
+          </div>
+        `;
+        card.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+        card.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+        grid.appendChild(card);
+      });
+    });
+</script>
+</body>
+</html>

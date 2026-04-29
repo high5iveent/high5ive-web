@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concentrates — High 5ive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --lime:   #C8F135;
+      --orange: #FF5C1A;
+      --cream:  #F5F0E8;
+      --dark:   #0C0C0B;
+      --muted:  #1E1E1C;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--dark);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+    #cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: var(--lime);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.18s ease, height 0.18s ease;
+      mix-blend-mode: difference;
+    }
+    #cursor.hovered { width: 36px; height: 36px; }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+      background: linear-gradient(to bottom, rgba(12,12,11,0.95), transparent);
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: var(--lime);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--orange); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { opacity: 1; }
+    .nav-back {
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.35;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .nav-back:hover { opacity: 0.8; }
+
+    .page-header {
+      padding: 10rem 3rem 4rem;
+      border-bottom: 1px solid rgba(245,240,232,0.06);
+    }
+    .breadcrumb {
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.3;
+      margin-bottom: 1.2rem;
+    }
+    .breadcrumb a {
+      color: var(--cream);
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .breadcrumb a:hover { opacity: 1; }
+    .breadcrumb span { margin: 0 0.5rem; opacity: 0.3; }
+    .page-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--lime);
+      opacity: 0.7;
+      margin-bottom: 1rem;
+    }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .page-title span { color: var(--lime); }
+
+    /* PRODUCT GRID */
+    .products-wrap { padding: 4rem 3rem; }
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5px;
+    }
+
+    .product-card {
+      background: var(--muted);
+      overflow: hidden;
+      transition: background 0.3s;
+      cursor: none;
+    }
+    .product-card:hover { background: #252522; }
+
+    .product-img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.8);
+      transition: filter 0.3s, transform 0.4s ease;
+    }
+    .product-card:hover .product-img {
+      filter: saturate(1);
+      transform: scale(1.02);
+    }
+    .product-img-wrap {
+      overflow: hidden;
+      position: relative;
+    }
+
+    .product-body { padding: 1.8rem; }
+
+    .product-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+    .product-unit {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--lime);
+      opacity: 0.65;
+    }
+    .product-stock {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .product-stock.in  { color: var(--lime); opacity: 0.5; }
+    .product-stock.low { color: var(--orange); opacity: 0.8; }
+    .product-stock.out { color: var(--cream); opacity: 0.25; }
+
+    .product-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.6rem;
+    }
+    .product-desc {
+      font-size: 0.83rem;
+      line-height: 1.65;
+      color: var(--cream);
+      opacity: 0.4;
+      font-weight: 300;
+      margin-bottom: 1.4rem;
+    }
+
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(245,240,232,0.07);
+    }
+    .product-price {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--cream);
+    }
+    .product-thc {
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.25;
+    }
+
+    .out-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(12,12,11,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--cream);
+      opacity: 0.6;
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      padding: 6rem 3rem;
+      text-align: center;
+      opacity: 0.3;
+    }
+    .empty-state p {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    .empty-state span {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 0.5rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+    }
+
+    footer {
+      border-top: 1px solid rgba(245,240,232,0.06);
+      padding: 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 1.5px;
+    }
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--lime);
+      letter-spacing: -0.02em;
+    }
+    .footer-logo span { color: var(--orange); }
+    .footer-copy { font-size: 0.75rem; color: var(--cream); opacity: 0.25; }
+    .footer-age {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--orange);
+      opacity: 0.7;
+      border: 1px solid rgba(255,92,26,0.25);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 1.2rem 1.5rem; }
+      .nav-links { display: none; }
+      .page-header { padding: 8rem 1.5rem 3rem; }
+      .products-wrap { padding: 3rem 1.5rem; }
+      .products-grid { grid-template-columns: 1fr; }
+      footer { padding: 2rem 1.5rem; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<nav>
+  <a href="/" class="nav-logo">High <span>5ive</span></a>
+  <ul class="nav-links">
+    <li><a href="/pages/shop.html" class="active">Shop</a></li>
+    <li><a href="/#statement">About</a></li>
+    <li><a href="/stash">Stash</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb">
+    <a href="/pages/shop.html">Shop</a>
+    <span>/</span>
+    Concentrates
+  </div>
+  <p class="page-eyebrow">02 — High 5ive</p>
+  <h1 class="page-title"><span>Concentrates</span></h1>
+</div>
+
+<div class="products-wrap">
+  <div class="products-grid" id="grid"></div>
+</div>
+
+<footer>
+  <div class="footer-logo">High <span>5ive</span></div>
+  <span class="footer-age">21+ Only</span>
+  <p class="footer-copy">© 2026 High 5ive. All rights reserved.</p>
+</footer>
+
+<script>
+  // CURSOR
+  const cursor = document.getElementById('cursor');
+  let mx = -100, my = -100, cx = -100, cy = -100;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  document.querySelectorAll('a').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+  });
+  (function moveCursor() {
+    cx += (mx - cx) * 0.14;
+    cy += (my - cy) * 0.14;
+    cursor.style.left = cx + 'px';
+    cursor.style.top  = cy + 'px';
+    requestAnimationFrame(moveCursor);
+  })();
+
+  // LOAD PRODUCTS
+  const CATEGORY = 'concentrates';
+  const grid = document.getElementById('grid');
+
+  function stockLabel(stock, available) {
+    if (!available || stock === 0) return { cls: 'out', text: 'Out of Stock' };
+    if (stock <= 3)                 return { cls: 'low', text: `Only ${stock} left` };
+    return                                 { cls: 'in',  text: 'In Stock' };
+  }
+
+  fetch('/products.json')
+    .then(r => r.json())
+    .then(data => {
+      const products = data[CATEGORY] || [];
+      if (products.length === 0) {
+        grid.innerHTML = `<div class="empty-state"><p>Nothing here yet.</p><span>Check back soon</span></div>`;
+        return;
+      }
+      products.forEach(p => {
+        const sl  = stockLabel(p.stock, p.available);
+        const out = sl.cls === 'out';
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          <div class="product-img-wrap">
+            <img class="product-img" src="${p.image}" alt="${p.name}" loading="lazy" />
+            ${out ? '<div class="out-overlay">Sold Out</div>' : ''}
+          </div>
+          <div class="product-body">
+            <div class="product-meta">
+              <span class="product-unit">${p.unit}</span>
+              <span class="product-stock ${sl.cls}">${sl.text}</span>
+            </div>
+            <div class="product-name">${p.name}</div>
+            <div class="product-desc">${p.description}</div>
+            <div class="product-footer">
+              <div class="product-price">$${p.price}</div>
+              <div class="product-thc">THC ${p.thc} &nbsp;·&nbsp; CBD ${p.cbd}</div>
+            </div>
+          </div>
+        `;
+        card.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+        card.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+        grid.appendChild(card);
+      });
+    })
+    .catch(() => {
+      grid.innerHTML = `<div class="empty-state"><p>Couldn't load products.</p><span>Try refreshing</span></div>`;
+    });
+<\/script>
+</body>
+</html>
